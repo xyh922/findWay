@@ -12,7 +12,7 @@ public class Map_ {
     private int start_y;
     private int end_x;
     private int end_y;
-    private static boolean[][] mapInfo;
+    private boolean[][] mapInfo;
     public Map_(int width, int height){
         this.width=width+2;
         this.height=height+2;
@@ -47,7 +47,7 @@ public class Map_ {
     }
 
 
-    public static boolean[][] getMapInfo() {
+    public  boolean[][] getMapInfo() {
         return mapInfo;
     }
 
@@ -60,15 +60,19 @@ public class Map_ {
         mapInfo=new boolean[width][height];
         //随机地图，true为可以通行，false为不可以通行
 
-        //设置外包围
+        //设置外包围  弃用
        // setBorder();
         //随机设置除外包围部分
 
         Random random=new Random();
         for(int y=1;y<height-1;y++){
         for(int x=1;x<width-1;x++){
-
-                mapInfo[x][y]=random.nextBoolean();
+//            可达点多于不可达
+                if(random.nextInt(10)<7){
+                    mapInfo[x][y]=true;
+                }
+                //完全随机
+//                mapInfo[x][y]=random.nextBoolean();
             }
         }
         //使起点终点可以通行
@@ -82,6 +86,7 @@ public class Map_ {
     }
     //展示地图
     public void showMap(){
+        //不可达为实心，可达为空心
         for(int y=0;y<height;y++){
             for(int x=0;x<width;x++){
 

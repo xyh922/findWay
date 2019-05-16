@@ -31,20 +31,22 @@ public class Radiation extends FindWay {
             mapInfo[p.getX()][p.getY()]=true;
         }
 
-        System.out.println("共遍历了"+set.size()+"个点");
+        System.out.println("共清扫了"+set.size()+"个点");
         //展示效果，但是对原map进行了修改，可以删除
+        shouLine(m);
+
+    }
+
+    @Override
+    public void shouLine(Map_ m) {
         m.setMapInfo(mapInfo);
         m.showMap();
-
     }
 
     public boolean isFindFinal() {
         return findFinal;
     }
 
-    public void setFindFinal(boolean findFinal) {
-        this.findFinal = findFinal;
-    }
 
     //对点进行分析上下左右
     private void handle(Point p) {
@@ -81,6 +83,9 @@ public class Radiation extends FindWay {
         if (info[x + 1][y]) {
             p.setRight(true);
         }
+        //点的信息判断完毕后加入集合中
+
+        //开始递归
         set.add(p);
         if(p.isUp()){
             handle(new Point(x,y-1));

@@ -4,8 +4,13 @@ import map.Map_;
 
 import java.util.*;
 
-//通过试探的方法到达终点
-public class Try extends FindWay {
+/*
+ * 同时记录失败与成功的试验品！
+ * 不可用
+ * */
+//有很大的问题！！无法解决！！！！
+//起点有多条可达路径时出错
+public class Both extends FindWay {
 
     //起点
     int start[];
@@ -24,8 +29,8 @@ public class Try extends FindWay {
     int[] del;
     //记录成功记录
     HashMap suc_step = new HashMap();
-    //记录删除的点集合
-    List<int[]> dellist = new ArrayList();
+    //失败路线集合
+    List<Step> faillist = new ArrayList();
 
 
     @Override
@@ -33,15 +38,15 @@ public class Try extends FindWay {
         //0位为x 1位为y
         start = map.getStart();
         end = map.getEnd();
-        System.out.println("起点为" + Arrays.toString(start));
-        System.out.println("终点为" + Arrays.toString(end));
+        System.out.println("起点为"+Arrays.toString(start));
+        System.out.println("终点为"+Arrays.toString(end));
         //定义起点为当前位置
         now_x = start[0];
         now_y = start[1];
         //定义上一步位置当前位置
         mapInfo = map.getMapInfo();
         //记录点中加入起点
-        suc_step.put(mov_step++, start);
+        suc_step.put(mov_step++,start);
         //自定义顺序：上下左右
         //返回上一步有问题！！
         _while:
@@ -53,33 +58,47 @@ public class Try extends FindWay {
                 break _while;
             }
 
-            //上一步是向上走↑下一步就一定 *不会是* 向下走↓，避免无限循环
+//上一步是向上走↑下一步就一定 *不会是* 向下走↓，避免无限循环
             //进行时，判断这个点是否已经走过，避免画圈
 
-            if (last != 1 && up(now_x, now_y)) {
+            if (last != 1 && up(now_x, now_y)&& !hasStep(new Step(now_x, now_y, 0))) {
                 continue;
             }
-            if (last != 0 && down(now_x, now_y)) {
+            if (last != 0 && down(now_x, now_y)&& !hasStep(new Step(now_x, now_y, 1))) {
                 continue;
             }
-            if (last != 3 && left(now_x, now_y)) {
+            if (last != 3 && left(now_x, now_y)&& !hasStep(new Step(now_x, now_y, 2))) {
                 continue;
             }
-            if (last != 2 && right(now_x, now_y)) {
+            if (last != 2 && right(now_x, now_y)&& !hasStep(new Step(now_x, now_y, 3))) {
                 continue;
             }
 
-            //获得删除的点
-            del = (int[]) suc_step.remove(--mov_step);
-            //如果点被删除过，则跳出循环，再删一次
-            if (hasDel(del)) {
-                continue;
+
+            //上下左右都走不通，返回上一步
+            del= (int[]) suc_step.remove(--mov_step);
+            System.out.println("删除的点为"+Arrays.toString(del));
+
+
+            int now[] = (int[]) suc_step.get(mov_step-1);
+            if(now!=null){
+                now_x = now[0];
+                now_y = now[1];
+                if(del[0]+1==now_x){
+                    last=3;
+                }else if (del[0]-1==now_x)
+                    last=2;
+                else if(del[1]+1==now_y)
+                    last=1;
+                else if(del[1]-1==now_y)
+                    last=0;
+
             }
-            goback();
 
+            System.out.println("没有路，返回上一步");
+            System.out.println("当前点为x:"+now_x+" y:"+now_y);
 
-            //暂时无用 弃用
-            if (mov_step == -1) {
+            if ( mov_step==-1) {
                 //退回起点，跳出循环
                 System.out.println("找不到出口");
                 break _while;
@@ -87,35 +106,19 @@ public class Try extends FindWay {
 
 
         }
-        shouLine(map);
-
-
-
-    }
-
-    @Override
-    public void shouLine(Map_ map) {
         Iterator iterator = suc_step.entrySet().iterator();
-        //展示路线,对原map进行了修改，可以删掉
-        int height = map.getHeight();
-        int width = map.getWidth();
-        boolean[][] b = new boolean[width][height];
-        for (int y = 1; y < height - 1; y++) {
-            for (int x = 1; x < width - 1; x++) {
-                b[x][y] = false;
-            }
-        }
-
         while (iterator.hasNext()) {
             Map.Entry<Integer, int[]> entry = (Map.Entry<Integer, int[]>) iterator.next();
             int p[] = entry.getValue();
             System.out.println("第" + entry.getKey() + "步:" +
                     "x=" + p[0] + " y=" + p[1]);
-            b[p[0]][p[1]] = true;
 
         }
-        map.setMapInfo(b);
-        map.showMap();
+    }
+
+    @Override
+    public void shouLine(Map_ map_) {
+
     }
 
     private boolean up(int x, int y) {
@@ -143,7 +146,7 @@ public class Try extends FindWay {
             }
 
         } else {
-
+            addlist(new Step(x, y+1, 0));
             System.out.println("x:" + x + "y:" + y + "  向上走失败");
             return false;
         }
@@ -172,6 +175,7 @@ public class Try extends FindWay {
                 return true;
             }
         } else {
+            addlist(new Step(x, y-1, 0));
             System.out.println("x:" + x + "y:" + y + "  向下走失败");
             return false;
         }
@@ -199,6 +203,7 @@ public class Try extends FindWay {
                 return true;
             }
         } else {
+            addlist(new Step(x+1, y, 0));
             System.out.println("x:" + x + "y:" + y + "  向左走失败");
             return false;
         }
@@ -225,6 +230,7 @@ public class Try extends FindWay {
                 return true;
             }
         } else {
+            addlist(new Step(x-1, y, 0));
             System.out.println("x:" + x + "y:" + y + "  向右走失败");
             return false;
         }
@@ -243,42 +249,28 @@ public class Try extends FindWay {
         return false;
 
     }
+    private void addlist(Step s) {
+        boolean flag = false;
+        for (Step ls : faillist) {
+            //如果没有相同元素则添加
+            if (ls.equals(s)) {
+                flag = true;
+            }
+        }
+        if (!flag) {
+            faillist.add(s);
+        }
+    }
 
-    private boolean hasDel(int[] i) {
-        Iterator it = dellist.iterator();
-        while (it.hasNext()) {
-            int[] e = (int[]) it.next();
-            if (e[0] == i[0] && e[1] == i[1]) {
+    //真为存在
+    //假为不存在
+    private boolean hasStep(Step s) {
+        for (Step ls : faillist) {
+            //如果没有相同元素则添加
+            if (ls.equals(s)) {
                 return true;
             }
         }
         return false;
-
     }
-
-    private void goback() {
-        dellist.add(del);
-        System.out.println("删除的点为" + Arrays.toString(del));
-
-
-        int now[] = (int[]) suc_step.get(mov_step - 1);
-        //根据删除的点判断上一次行动方向
-        if (now != null) {
-            now_x = now[0];
-            now_y = now[1];
-            if (del[0] + 1 == now_x) {
-                last = 3;
-            } else if (del[0] - 1 == now_x)
-                last = 2;
-            else if (del[1] + 1 == now_y)
-                last = 1;
-            else if (del[1] - 1 == now_y)
-                last = 0;
-
-        }
-
-        System.out.println("没有路，返回上一步");
-        System.out.println("当前点为x:" + now_x + " y:" + now_y);
-    }
-
 }
